@@ -13,19 +13,14 @@ fn mined_block_hash(env: &common::TestEnv) -> anyhow::Result<BlockHash> {
 fn funded_send(env: &common::TestEnv) -> anyhow::Result<Txid> {
     env.mine_blocks(101, None)?;
     let address = env.node.client.new_address()?;
-    Ok(env
-        .client
-        .send_to_address(&address, Amount::from_sat(50_000))?)
+    Ok(env.client.send_to_address(&address, Amount::from_sat(50_000))?)
 }
 
 #[test]
 fn test_get_blockchain_info() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let result = env.client.get_blockchain_info();
-    assert!(
-        result.is_ok(),
-        "failed to call getblockchaininfo: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call getblockchaininfo: {result:?}");
     Ok(())
 }
 
@@ -41,10 +36,7 @@ fn test_get_block_count() -> anyhow::Result<()> {
 fn test_get_best_block_hash() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let result = env.client.get_best_block_hash();
-    assert!(
-        result.is_ok(),
-        "failed to call getbestblockhash: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call getbestblockhash: {result:?}");
     Ok(())
 }
 
@@ -95,10 +87,7 @@ fn test_get_rawm_empool() -> anyhow::Result<()> {
 fn test_get_raw_mempool_verbose() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let result = env.client.get_raw_mempool_verbose();
-    assert!(
-        result.is_ok(),
-        "failed to call getrawmempool verbose: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call getrawmempool verbose: {result:?}");
     Ok(())
 }
 
@@ -107,9 +96,7 @@ fn test_send_to_address() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     env.mine_blocks(101, None)?;
     let address = env.node.client.new_address()?;
-    let result = env
-        .client
-        .send_to_address(&address, Amount::from_sat(50_000));
+    let result = env.client.send_to_address(&address, Amount::from_sat(50_000));
     assert!(result.is_ok(), "failed to call sendtoaddress: {result:?}");
     Ok(())
 }
@@ -119,10 +106,7 @@ fn test_get_raw_transaction() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let txid = funded_send(&env)?;
     let result = env.client.get_raw_transaction(&txid);
-    assert!(
-        result.is_ok(),
-        "failed to call getrawtransaction: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call getrawtransaction: {result:?}");
     Ok(())
 }
 
@@ -136,10 +120,7 @@ fn test_import_descriptors() -> anyhow::Result<()> {
         ..Default::default()
     };
     let result = env.client.import_descriptors(&[request]);
-    assert!(
-        result.is_ok(),
-        "failed to call importdescriptors: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call importdescriptors: {result:?}");
     Ok(())
 }
 
@@ -165,10 +146,7 @@ fn test_get_block_verbose() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let hash = mined_block_hash(&env)?;
     let result = env.client.get_block_verbose(&hash);
-    assert!(
-        result.is_ok(),
-        "failed to call getblock verbose: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call getblock verbose: {result:?}");
     Ok(())
 }
 
@@ -179,9 +157,6 @@ fn test_get_descriptor_info() -> anyhow::Result<()> {
     let address = env.node.client.new_address()?;
     let descriptor = format!("addr({address})");
     let result = env.client.get_descriptor_info(&descriptor);
-    assert!(
-        result.is_ok(),
-        "failed to call getdescriptorinfo: {result:?}"
-    );
+    assert!(result.is_ok(), "failed to call getdescriptorinfo: {result:?}");
     Ok(())
 }

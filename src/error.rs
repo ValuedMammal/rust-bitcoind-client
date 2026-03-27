@@ -1,3 +1,5 @@
+//! [`Error`]
+
 use alloc::boxed::Box;
 
 use jsonrpc::serde_json;

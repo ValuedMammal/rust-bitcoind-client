@@ -1,3 +1,5 @@
+//! [`Client`]
+
 use alloc::string::ToString;
 use core::future::Future;
 use core::sync::atomic::{AtomicUsize, Ordering};
@@ -92,7 +94,7 @@ impl Client {
         Ok(response.result()?)
     }
 
-    /// Forms the [`Request`] and increments the internal request id id.
+    /// Forms the [`Request`] and increments the internal request id.
     fn request<'a>(&self, method: &'a str, params: Option<&'a RawValue>) -> Request<'a> {
         let id = self.id.fetch_add(1, Ordering::Relaxed);
         Request {

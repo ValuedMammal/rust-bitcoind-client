@@ -44,7 +44,7 @@ pub struct ImportDescriptorsRequest {
     /// Set this descriptor to be the active descriptor for the corresponding output type.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
-    /// If a ranged descriptor is used, this specifies the range (in the form [begin,end]) to import.
+    /// If a ranged descriptor is used, this specifies the range (in the form \[begin,end\]) to import.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub range: Option<(usize, usize)>,
     /// The next index from which to generate addresses.

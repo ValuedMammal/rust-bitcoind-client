@@ -1,4 +1,4 @@
-//! RPC methods
+//! [`Rpc`] methods
 
 macro_rules! impl_rpc_methods {
     ( $($name:ident,)+ ) => {
@@ -25,7 +25,8 @@ macro_rules! impl_rpc_methods {
     }
 }
 
-// All implemented RPCs
+// RPC methods go here. Theses names MUST match the name of the RPC method (when converted to lowercase).
+// See <https://bitcoincore.org/en/doc/> for details.
 impl_rpc_methods!(
     GetBestBlockHash,
     GetBlockchainInfo,

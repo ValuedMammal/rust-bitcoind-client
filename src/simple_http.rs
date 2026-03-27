@@ -1,4 +1,4 @@
-//! [`Client`].
+//! `simple_http` [`Client`].
 
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -106,8 +106,7 @@ impl Client {
     where
         T: for<'de> Deserialize<'de>,
     {
-        self.inner
-            .call(rpc, params, |request| self.tp.send_request(request))
+        self.inner.call(rpc, params, |request| self.tp.send_request(request))
     }
 }
 
@@ -187,15 +186,13 @@ impl Client {
         if let Some(e) = res.errors.and_then(|v| v.first().cloned()) {
             return Err(Error::Response(e));
         }
-        let btc_kvb = res.fee_rate.ok_or(Error::Response(
-            "estimatesmartfee returned no feerate".to_string(),
-        ))?;
+        let btc_kvb = res
+            .fee_rate
+            .ok_or(Error::Response("estimatesmartfee returned no feerate".to_string()))?;
         // This is a conservative upper bound on the maximum feerate that is valid by consensus,
         // since there cannot be more than 21M BTC in fees per 1Mb block.
         if btc_kvb > Amount::MAX_MONEY.to_btc() / 1000.0 {
-            return Err(Error::Response(format!(
-                "invalid feerate: {btc_kvb} BTC/kvB"
-            )));
+            return Err(Error::Response(format!("invalid feerate: {btc_kvb} BTC/kvB")));
         }
         // 1 sat/vb = 0.00001000 btc/kvb * 10^8 sat/btc * 0.25 wu/sat = 250 sat/kwu
         let sat_kwu = (btc_kvb * 25_000_000.0).round() as u64;
