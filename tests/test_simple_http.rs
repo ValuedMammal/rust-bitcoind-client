@@ -30,6 +30,14 @@ fn test_get_blockchain_info() -> anyhow::Result<()> {
 }
 
 #[test]
+fn test_get_best_block_hash() -> anyhow::Result<()> {
+    let env = common::TestEnv::new()?;
+    let result = env.client.get_best_block_hash();
+    assert!(result.is_ok(), "failed to call getblockhash: {result:?}");
+    Ok(())
+}
+
+#[test]
 fn test_get_block_hash() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let result = env.client.get_block_hash(0);

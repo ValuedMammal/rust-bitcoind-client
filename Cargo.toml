@@ -15,11 +15,11 @@ corepc-node = { version = "0.10.1", features = ["29_0"] }
 
 [[test]]
 name = "test_simple_http"
-required-features = ["simple_http"]
+required-features = ["simple-http"]
 
 [[example]]
 name = "client"
-required-features = ["simple_http"]
+required-features = ["simple-http"]
 
 [features]
 # Bitcoin Core compatible versions
