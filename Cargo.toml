@@ -12,23 +12,21 @@ serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
 anyhow = "1"
 corepc-node = { version = "0.10.1", features = ["29_0"] }
-
-[[test]]
-name = "test_simple_http"
-required-features = ["simple-http"]
+# Enable crate default features for dev-deps
+simplerpc = { path = ".", default-features = true }
 
 [[example]]
 name = "client"
-required-features = ["simple-http"]
 
 [features]
-# Bitcoin Core compatible versions
-default = ["29_0"]
-29_0 = []
-28_0 = []
-
 # Enable std library
 std = []
 
 # Native HTTP client
 simple-http = ["std", "corepc-types/std", "jsonrpc/simple_http"]
+
+# Bitcoin Core compatible versions
+default = ["30_0"]
+30_0 = []
+29_0 = []
+28_0 = []
