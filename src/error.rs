@@ -5,6 +5,9 @@ use jsonrpc::serde_json;
 /// Error
 #[derive(Debug)]
 pub enum Error {
+    /// Bitcoin hex parsing error
+    #[cfg(feature = "simple-http")]
+    DecodeHex(corepc_types::bitcoin::hex::HexToArrayError),
     /// mismatched IDs
     IdMismatch,
     /// Invalid cookie file
@@ -17,34 +20,31 @@ pub enum Error {
     /// error modeling a `corepc` type
     #[cfg(feature = "simple-http")]
     Model(Box<dyn core::error::Error + Send + Sync + 'static>),
+    /// parse integer
+    #[cfg(feature = "simple-http")]
+    ParseInt(core::num::ParseIntError),
+    /// Error returned in the response
+    Response(alloc::string::String),
     /// `serde_json`
     SerdeJson(serde_json::Error),
-    /// Error returned from RPC
-    Returned(alloc::string::String),
-    /// Bitcoin address parsing error
-    #[cfg(feature = "simple-http")]
-    BitcoinAddressParse(corepc_types::bitcoin::address::ParseError),
-    /// Bitcoin hex parsing error
-    #[cfg(feature = "simple-http")]
-    BitcoinHexParse(corepc_types::bitcoin::hex::HexToArrayError),
 }
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            #[cfg(feature = "simple-http")]
+            Self::DecodeHex(e) => write!(f, "{e}"),
             Self::IdMismatch => write!(f, "request id mismatch"),
             Self::InvalidCookieFile => write!(f, "invaild cookie file"),
             #[cfg(feature = "std")]
             Self::Io(e) => write!(f, "{e}"),
             #[cfg(feature = "simple-http")]
             Self::Model(e) => write!(f, "{e}"),
+            #[cfg(feature = "simple-http")]
+            Self::ParseInt(e) => write!(f, "{e}"),
             Self::JsonRpc(e) => write!(f, "{e}"),
             Self::SerdeJson(e) => write!(f, "{e}"),
-            Self::Returned(s) => write!(f, "{s}"),
-            #[cfg(feature = "simple-http")]
-            Self::BitcoinAddressParse(e) => write!(f, "{e}"),
-            #[cfg(feature = "simple-http")]
-            Self::BitcoinHexParse(e) => write!(f, "{e}"),
+            Self::Response(s) => write!(f, "{s}"),
         }
     }
 }
@@ -80,14 +80,11 @@ macro_rules! impl_error_from {
     };
 }
 
-impl_error_from!(SerdeJson, serde_json::Error);
-impl_error_from!(JsonRpc, jsonrpc::Error);
+#[cfg(feature = "simple-http")]
+impl_error_from!(DecodeHex, corepc_types::bitcoin::hex::HexToArrayError);
 #[cfg(feature = "std")]
 impl_error_from!(Io, std::io::Error);
+impl_error_from!(JsonRpc, jsonrpc::Error);
 #[cfg(feature = "simple-http")]
-impl_error_from!(
-    BitcoinAddressParse,
-    corepc_types::bitcoin::address::ParseError
-);
-#[cfg(feature = "simple-http")]
-impl_error_from!(BitcoinHexParse, corepc_types::bitcoin::hex::HexToArrayError);
+impl_error_from!(ParseInt, core::num::ParseIntError);
+impl_error_from!(SerdeJson, serde_json::Error);

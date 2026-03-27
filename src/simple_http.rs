@@ -180,15 +180,15 @@ impl Client {
     pub fn estimate_smart_fee(&self, blocks: u32) -> Result<FeeRate, Error> {
         let res: v29::EstimateSmartFee = self.call(EstimateSmartFee, &[json!(blocks)])?;
         if let Some(e) = res.errors.and_then(|v| v.first().cloned()) {
-            return Err(Error::Returned(e));
+            return Err(Error::Response(e));
         }
-        let btc_kvb = res.fee_rate.ok_or(Error::Returned(
+        let btc_kvb = res.fee_rate.ok_or(Error::Response(
             "estimatesmartfee returned no feerate".to_string(),
         ))?;
         // This is a conservative upper bound on the maximum feerate that is valid by consensus,
         // since there cannot be more than 21M BTC in fees per 1Mb block.
         if btc_kvb > Amount::MAX_MONEY.to_btc() / 1000.0 {
-            return Err(Error::Returned(format!(
+            return Err(Error::Response(format!(
                 "invalid feerate: {btc_kvb} BTC/kvB"
             )));
         }
