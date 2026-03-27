@@ -1,9 +1,9 @@
 #![allow(unused)]
 
 use bitcoin::{Address, BlockHash};
+use bitcoind_client::simple_http::{Auth, Client};
 use corepc_node::{Conf, Node, exe_path};
 use corepc_types::bitcoin;
-use simplerpc::simple_http::{Auth, Client};
 
 /// Test environment for running integration tests.
 ///

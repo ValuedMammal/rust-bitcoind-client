@@ -1,6 +1,12 @@
 [package]
-name = "simplerpc"
-version = "0.1.0"
+name = "bitcoind-client"
+version = "1.0.0"
+authors = ["ValuedMammal <valuedmammal@protonmail.com>"]
+description = "Bitcoin Core RPC client library"
+keywords = ["bitcoin"]
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/rust-bitcoind-client"
+repository = "https://github.com/valuedmammal/rust-bitcoind-client"
 rust-version = "1.85.0"
 edition = "2024"
 
@@ -12,8 +18,8 @@ serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
 anyhow = "1"
 corepc-node = { version = "0.10.1", features = ["29_0"] }
-# Enable crate default features for dev-deps
-simplerpc = { path = ".", default-features = true }
+# Enable crate default features + HTTP client for tests, examples.
+bitcoind-client = { path = ".", default-features = true, features = ["simple-http"] }
 
 [[example]]
 name = "client"

@@ -1,4 +1,4 @@
-//! `simplerpc`.
+//! `bitcoind_client`.
 
 #![no_std]
 

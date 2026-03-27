@@ -3,8 +3,8 @@
 mod common;
 
 use bitcoin::{Amount, BlockHash, Txid};
+use bitcoind_client::types::ImportDescriptorsRequest;
 use corepc_types::bitcoin;
-use simplerpc::types::ImportDescriptorsRequest;
 
 fn mined_block_hash(env: &common::TestEnv) -> anyhow::Result<BlockHash> {
     Ok(env.mine_blocks(1, None)?[0])

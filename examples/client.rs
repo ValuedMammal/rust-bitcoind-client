@@ -1,4 +1,4 @@
-use simplerpc::simple_http::{self, Auth};
+use bitcoind_client::simple_http::{self, Auth};
 
 /// RPC url.
 const URL: &str = "http://127.0.0.1:38332";

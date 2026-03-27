@@ -1,3 +1,3 @@
-# `simplerpc`
+# `bitcoind-client`
 
-A simple Bitcoin Core RPC client library
+A Bitcoin Core RPC client library in Rust
