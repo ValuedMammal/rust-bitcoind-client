@@ -1,21 +1,34 @@
 [package]
 name = "simplerpc"
 version = "0.1.0"
+rust-version = "1.85.0"
 edition = "2024"
 
 [dependencies]
-corepc-client = { version = "0.10.0", features = ["client-sync"] }
-jsonrpc = { version = "0.18.0", default-features = false, features = ["simple_http"] }
-serde = { version = "1.0.228", features = ["derive"] }
+corepc-types = { version = "0.11.0", default-features = false }
+jsonrpc = { version = "0.19.0", default-features = false }
+serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 anyhow = "1"
-lazy_static = "1.5.0"
+corepc-node = { version = "0.10.1", features = ["29_0"] }
+
+[[test]]
+name = "test_simple_http"
+required-features = ["simple_http"]
 
 [[example]]
 name = "client"
+required-features = ["simple_http"]
 
 [features]
+# Bitcoin Core compatible versions
 default = ["29_0"]
 29_0 = []
 28_0 = []
+
+# Enable std library
+std = []
+
+# Native HTTP client
+simple-http = ["std", "corepc-types/std", "jsonrpc/simple_http"]

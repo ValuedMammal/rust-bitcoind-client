@@ -1,38 +1,39 @@
 //! Client methods which support Bitcoin Core version 28.0.
 
 use bitcoin::BlockHash;
-use corepc_client::bitcoin;
-use corepc_client::client_sync::Error;
-use corepc_client::types::model::{GetBlockHeaderVerbose, GetBlockVerboseOne, GetBlockchainInfo};
-use corepc_client::types::v28;
+use corepc_types::bitcoin;
+use corepc_types::model::{GetBlockHeaderVerbose, GetBlockVerboseOne, GetBlockchainInfo};
+use corepc_types::v28;
 
 use super::Client;
 use super::json;
+use crate::Error;
+use crate::Rpc::*;
 
 impl Client {
-    /// Get blockchain info.
+    /// `getblockchaininfo`
     pub fn get_blockchain_info(&self) -> Result<GetBlockchainInfo, Error> {
-        let res: v28::GetBlockchainInfo = self.call("getblockchaininfo", &[])?;
+        let res: v28::GetBlockchainInfo = self.call(GetBlockchainInfo, &[])?;
         Ok(res.into_model().unwrap())
     }
 
-    /// Get block header (verbose).
+    /// `getblockheader` (verbose)
     pub fn get_block_header_verbose(
         &self,
         hash: &BlockHash,
     ) -> Result<GetBlockHeaderVerbose, Error> {
-        let res: v28::GetBlockHeaderVerbose = self.call("getblockheader", &[json!(hash)])?;
+        let res: v28::GetBlockHeaderVerbose = self.call(GetBlockHeader, &[json!(hash)])?;
         Ok(res.into_model().unwrap())
     }
 
-    /// Get block (verbose).
+    /// `getblock` (verbosity = 1).
     pub fn get_block_verbose(&self, hash: &BlockHash) -> Result<GetBlockVerboseOne, Error> {
-        let res: v28::GetBlockVerboseOne = self.call("getblock", &[json!(hash), json!(1)])?;
+        let res: v28::GetBlockVerboseOne = self.call(GetBlock, &[json!(hash), json!(1)])?;
         Ok(res.into_model().unwrap())
     }
 
-    /// Get descriptor info.
+    /// `getdescriptorinfo`
     pub fn get_descriptor_info(&self, descriptor: &str) -> Result<v28::GetDescriptorInfo, Error> {
-        self.call("getdescriptorinfo", &[json!(descriptor)])
+        self.call(GetDescriptorInfo, &[json!(descriptor)])
     }
 }

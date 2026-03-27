@@ -1,6 +1,9 @@
+use alloc::string::String;
+use alloc::vec::Vec;
+
 use bitcoin::bip158;
-use corepc_client::bitcoin;
-use corepc_client::types::v19::GetBlockFilterError;
+use corepc_types::bitcoin;
+use corepc_types::v19::GetBlockFilterError;
 use serde::{Deserialize, Serialize};
 
 /// Response to `getblockfilter`.
