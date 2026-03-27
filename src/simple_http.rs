@@ -20,7 +20,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::Error;
-use crate::Rpc::*;
+use crate::Rpc::{self, *};
 use crate::types::{GetBlockFilter, ImportDescriptorsRequest, ImportDescriptorsResponse};
 
 #[cfg(feature = "28_0")]
@@ -102,7 +102,7 @@ impl Client {
     }
 
     /// Execute the RPC
-    fn call<T>(&self, rpc: crate::Rpc, params: &[serde_json::Value]) -> Result<T, Error>
+    fn call<T>(&self, rpc: Rpc, params: &[serde_json::Value]) -> Result<T, Error>
     where
         T: for<'de> Deserialize<'de>,
     {
@@ -113,6 +113,11 @@ impl Client {
 
 // `bitcoind` RPC methods
 impl Client {
+    /// `getblockcount`
+    pub fn get_block_count(&self) -> Result<u32, Error> {
+        self.call(GetBlockCount, &[])
+    }
+
     /// `getbestblockhash`
     pub fn get_best_block_hash(&self) -> Result<BlockHash, Error> {
         Ok(self.call::<String>(GetBestBlockHash, &[])?.parse()?)

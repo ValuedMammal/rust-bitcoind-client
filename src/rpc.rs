@@ -30,6 +30,7 @@ impl_rpc_methods!(
     GetBestBlockHash,
     GetBlockchainInfo,
     GetBlockHash,
+    GetBlockCount,
     GetBlock,
     GetBlockHeader,
     GetBlockFilter,
