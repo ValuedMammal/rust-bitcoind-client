@@ -113,6 +113,11 @@ impl Client {
 
 // `bitcoind` RPC methods
 impl Client {
+    /// `getbestblockhash`
+    pub fn get_best_block_hash(&self) -> Result<BlockHash, Error> {
+        Ok(self.call::<String>(GetBestBlockHash, &[])?.parse()?)
+    }
+
     /// `getblockhash`
     pub fn get_block_hash(&self, height: u32) -> Result<BlockHash, Error> {
         let res: String = self.call(GetBlockHash, &[json!(height)])?;

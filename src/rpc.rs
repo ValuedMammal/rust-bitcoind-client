@@ -27,6 +27,7 @@ macro_rules! impl_rpc_methods {
 
 // All implemented RPCs
 impl_rpc_methods!(
+    GetBestBlockHash,
     GetBlockchainInfo,
     GetBlockHash,
     GetBlock,
