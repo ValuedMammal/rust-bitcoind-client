@@ -76,7 +76,7 @@ fn test_get_block() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_get_rawm_empool() -> anyhow::Result<()> {
+fn test_get_raw_mempool() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let result = env.client.get_raw_mempool();
     assert!(result.is_ok(), "failed to call getrawmempool: {result:?}");
@@ -130,7 +130,6 @@ fn test_estimatesmartfee() -> anyhow::Result<()> {
     todo!()
 }
 
-#[cfg(not(feature = "28_0"))]
 #[test]
 fn test_get_block_header() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
@@ -140,7 +139,6 @@ fn test_get_block_header() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[cfg(not(feature = "28_0"))]
 #[test]
 fn test_get_block_verbose() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
@@ -150,7 +148,6 @@ fn test_get_block_verbose() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[cfg(not(feature = "28_0"))]
 #[test]
 fn test_get_descriptor_info() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
