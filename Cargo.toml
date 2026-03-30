@@ -17,7 +17,7 @@ serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 anyhow = "1"
-corepc-node = { version = "0.10.1", features = ["29_0"] }
+corepc-node = { version = "0.10.1", features = ["download", "29_0"] }
 # Enable crate default features + HTTP client for tests, examples.
 bitcoind-client = { path = ".", default-features = true, features = ["simple-http"] }
 
