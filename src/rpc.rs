@@ -25,7 +25,7 @@ macro_rules! impl_rpc_methods {
     }
 }
 
-// RPC methods go here. Theses names MUST match the name of the RPC method (when converted to lowercase).
+// RPC methods go here. These names MUST match the name of the RPC method (when converted to lowercase).
 // See <https://bitcoincore.org/en/doc/> for details.
 impl_rpc_methods!(
     GetBestBlockHash,
