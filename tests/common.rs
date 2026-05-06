@@ -11,7 +11,7 @@ use corepc_types::bitcoin;
 /// a running [`corepc_node::Node`] instance.
 #[derive(Debug)]
 pub struct TestEnv {
-    /// [`bdk_bitcoind_client::Client`]
+    /// [`bitcoind_client::Client`]
     pub client: Client,
     /// [`corepc_node::Node`]
     pub node: Node,
