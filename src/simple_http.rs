@@ -188,10 +188,13 @@ impl Client {
         }
         let btc_kvb = res
             .fee_rate
-            .ok_or(Error::Response("estimatesmartfee returned no feerate".to_string()))?;
-        // This is a conservative upper bound on the maximum feerate that is valid by consensus,
-        // since there cannot be more than 21M BTC in fees per 1Mb block.
-        if btc_kvb > Amount::MAX_MONEY.to_btc() / 1000.0 {
+            .ok_or(Error::Response("estimatesmartfee returned no fee_rate".to_string()))?;
+        // Reject infinite and negative values
+        if !btc_kvb.is_finite() || btc_kvb <= 0.0 {
+            return Err(Error::Response(format!("invalid feerate: {btc_kvb} BTC/kvB")));
+        }
+        // No transaction can pay more BTC/kvB as a fee than the total supply
+        if btc_kvb > Amount::MAX_MONEY.to_btc() {
             return Err(Error::Response(format!("invalid feerate: {btc_kvb} BTC/kvB")));
         }
         // 1 sat/vb = 0.00001000 btc/kvb * 10^8 sat/btc * 0.25 wu/sat = 250 sat/kwu
