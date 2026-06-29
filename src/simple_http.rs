@@ -7,13 +7,10 @@ use std::path::PathBuf;
 use std::string::{String, ToString};
 use std::vec::Vec;
 
-use bitcoin::{Address, Amount, Block, BlockHash, FeeRate, Transaction, Txid};
-
+use bitcoin::{Address, Amount, Block, BlockHash, FeeRate, Transaction, Txid, block::Header};
 use corepc_types::bitcoin;
-use corepc_types::model::MempoolEntry;
-#[cfg(not(feature = "28_0"))]
-use corepc_types::model::{GetBlockHeaderVerbose, GetBlockVerboseOne, GetBlockchainInfo};
-use corepc_types::v29;
+use corepc_types::model::{self, GetBlockHeaderVerbose, GetBlockVerboseOne, MempoolEntry};
+use corepc_types::v31;
 use jsonrpc::Transport;
 use jsonrpc::{serde, serde_json};
 use serde::Deserialize;
@@ -22,9 +19,6 @@ use serde_json::json;
 use crate::Error;
 use crate::Rpc::{self, *};
 use crate::types::{GetBlockFilter, ImportDescriptorsRequest, ImportDescriptorsResponse};
-
-#[cfg(feature = "28_0")]
-pub mod v28;
 
 // RPC Client.
 #[derive(Debug)]
@@ -112,6 +106,17 @@ impl Client {
 
 // `bitcoind` RPC methods
 impl Client {
+    /// `getblockchaininfo`.
+    pub fn get_blockchain_info(&self) -> Result<model::GetBlockchainInfo, Error> {
+        let res: v31::GetBlockchainInfo = self.call(GetBlockchainInfo, &[])?;
+        res.into_model().map_err(Error::model)
+    }
+
+    /// `getdescriptorinfo`
+    pub fn get_descriptor_info(&self, descriptor: &str) -> Result<v31::GetDescriptorInfo, Error> {
+        self.call(GetDescriptorInfo, &[json!(descriptor)])
+    }
+
     /// `getblockcount`
     pub fn get_block_count(&self) -> Result<u32, Error> {
         self.call(GetBlockCount, &[])
@@ -128,6 +133,21 @@ impl Client {
         Ok(res.parse()?)
     }
 
+    /// `getblockheader`
+    pub fn get_block_header(&self, hash: &BlockHash) -> Result<Header, Error> {
+        let res: v31::GetBlockHeader = self.call(GetBlockHeader, &[json!(hash), json!(false)])?;
+        Ok(res.into_model().map_err(Error::model)?.0)
+    }
+
+    /// `getblockheader` (verbose)
+    pub fn get_block_header_verbose(
+        &self,
+        hash: &BlockHash,
+    ) -> Result<GetBlockHeaderVerbose, Error> {
+        let res: v31::GetBlockHeaderVerbose = self.call(GetBlockHeader, &[json!(hash)])?;
+        res.into_model().map_err(Error::model)
+    }
+
     /// `getblockfilter`
     pub fn get_block_filter(&self, hash: &BlockHash) -> Result<GetBlockFilter, Error> {
         use crate::types::GetBlockFilterResponse;
@@ -137,38 +157,32 @@ impl Client {
 
     /// `getblock` (raw)
     pub fn get_block_raw(&self, hash: &BlockHash) -> Result<String, Error> {
-        let res: v29::GetBlockVerboseZero = self.call(GetBlock, &[json!(hash), json!(0)])?;
+        let res: v31::GetBlockVerboseZero = self.call(GetBlock, &[json!(hash), json!(0)])?;
         Ok(res.0)
     }
 
     /// `getblock`
     pub fn get_block(&self, hash: &BlockHash) -> Result<Block, Error> {
-        let res: v29::GetBlockVerboseZero = self.call(GetBlock, &[json!(hash), json!(0)])?;
+        let res: v31::GetBlockVerboseZero = self.call(GetBlock, &[json!(hash), json!(0)])?;
         res.block().map_err(Error::model)
     }
 
     /// `getrawmempool`
     pub fn get_raw_mempool(&self) -> Result<Vec<Txid>, Error> {
-        let res: v29::GetRawMempool = self.call(GetRawMempool, &[])?;
-        Ok(res.into_model().map_err(Error::model)?.0)
-    }
-
-    /// `getrawmempool` (verbose = true)
-    pub fn get_raw_mempool_verbose(&self) -> Result<BTreeMap<Txid, MempoolEntry>, Error> {
-        let res: v29::GetRawMempoolVerbose = self.call(GetRawMempool, &[json!(true)])?;
+        let res: v31::GetRawMempool = self.call(GetRawMempool, &[])?;
         Ok(res.into_model().map_err(Error::model)?.0)
     }
 
     /// `sendtoaddress`
     pub fn send_to_address(&self, address: &Address, amount: Amount) -> Result<Txid, Error> {
-        let res: v29::SendToAddress =
+        let res: v31::SendToAddress =
             self.call(SendToAddress, &[json!(address), json!(amount.to_btc())])?;
         Ok(res.txid()?)
     }
 
     /// `getrawtransaction`
     pub fn get_raw_transaction(&self, txid: &Txid) -> Result<Transaction, Error> {
-        let res: v29::GetRawTransaction = self.call(GetRawTransaction, &[json!(txid)])?;
+        let res: v31::GetRawTransaction = self.call(GetRawTransaction, &[json!(txid)])?;
         Ok(res.into_model().map_err(Error::model)?.0)
     }
 
@@ -182,7 +196,7 @@ impl Client {
 
     /// `estimatesmartfee`
     pub fn estimate_smart_fee(&self, blocks: u32) -> Result<FeeRate, Error> {
-        let res: v29::EstimateSmartFee = self.call(EstimateSmartFee, &[json!(blocks)])?;
+        let res: v31::EstimateSmartFee = self.call(EstimateSmartFee, &[json!(blocks)])?;
         if let Some(e) = res.errors.and_then(|v| v.first().cloned()) {
             return Err(Error::Response(e));
         }
@@ -204,31 +218,39 @@ impl Client {
     }
 }
 
-#[cfg(not(feature = "28_0"))]
+// --- v31 compatible APIs
+
+#[cfg(feature = "31_0")]
 impl Client {
-    /// `getblockchaininfo`.
-    pub fn get_blockchain_info(&self) -> Result<GetBlockchainInfo, Error> {
-        let res: v29::GetBlockchainInfo = self.call(GetBlockchainInfo, &[])?;
-        res.into_model().map_err(Error::model)
-    }
-
-    /// `getblockheader` (verbose)
-    pub fn get_block_header_verbose(
-        &self,
-        hash: &BlockHash,
-    ) -> Result<GetBlockHeaderVerbose, Error> {
-        let res: v29::GetBlockHeaderVerbose = self.call(GetBlockHeader, &[json!(hash)])?;
-        res.into_model().map_err(Error::model)
-    }
-
-    /// `getblock`
+    /// `getblock` (verbose = 1)
     pub fn get_block_verbose(&self, hash: &BlockHash) -> Result<GetBlockVerboseOne, Error> {
-        let res: v29::GetBlockVerboseOne = self.call(GetBlock, &[json!(hash), json!(1)])?;
+        let res: v31::GetBlockVerboseOne = self.call(GetBlock, &[json!(hash), json!(1)])?;
         res.into_model().map_err(Error::model)
     }
 
-    /// `getdescriptorinfo`
-    pub fn get_descriptor_info(&self, descriptor: &str) -> Result<v29::GetDescriptorInfo, Error> {
-        self.call(GetDescriptorInfo, &[json!(descriptor)])
+    /// `getrawmempool` (verbose = true)
+    pub fn get_raw_mempool_verbose(&self) -> Result<BTreeMap<Txid, MempoolEntry>, Error> {
+        let res: v31::GetRawMempoolVerbose = self.call(GetRawMempool, &[json!(true)])?;
+        Ok(res.into_model().map_err(Error::model)?.0)
+    }
+}
+
+// --- v30 compatible APIs
+
+#[cfg(not(feature = "31_0"))]
+use corepc_types::v30;
+
+#[cfg(not(feature = "31_0"))]
+impl Client {
+    /// `getblock` (verbose = 1)
+    pub fn get_block_verbose(&self, hash: &BlockHash) -> Result<GetBlockVerboseOne, Error> {
+        let res: v30::GetBlockVerboseOne = self.call(GetBlock, &[json!(hash), json!(1)])?;
+        res.into_model().map_err(Error::model)
+    }
+
+    /// `getrawmempool` (verbose = true)
+    pub fn get_raw_mempool_verbose(&self) -> Result<BTreeMap<Txid, MempoolEntry>, Error> {
+        let res: v30::GetRawMempoolVerbose = self.call(GetRawMempool, &[json!(true)])?;
+        Ok(res.into_model().map_err(Error::model)?.0)
     }
 }

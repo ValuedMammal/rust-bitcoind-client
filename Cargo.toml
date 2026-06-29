@@ -14,15 +14,15 @@ edition = "2024"
 features = ["simple-http"]
 
 [dependencies]
-corepc-types = { version = "0.11.0", default-features = false }
-jsonrpc = { version = "0.19.0", default-features = false }
+corepc-types = { version = "0.15.0", default-features = false }
+jsonrpc = { version = "0.20.1", default-features = false }
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 anyhow = "1"
 # Check types deserialization by denying unknown fields
-corepc-types = { version = "0.11.0", default-features = false, features = ["serde-deny-unknown-fields"] }
-corepc-node = { version = "0.10.1", features = ["download", "29_0"] }
+corepc-types = { version = "0.15.0", default-features = false, features = ["serde-deny-unknown-fields"] }
+bitcoind = { version = "0.41.0", features = ["download", "latest"] }
 # Enable crate default features + HTTP client for tests, examples.
 bitcoind-client = { path = ".", default-features = true, features = ["simple-http"] }
 
@@ -37,7 +37,7 @@ std = []
 simple-http = ["std", "corepc-types/std", "jsonrpc/simple_http"]
 
 # Bitcoin Core compatible versions
-default = ["30_0"]
-30_0 = []
+default = ["31_0"]
+31_0 = ["30_0"]
+30_0 = ["29_0"]
 29_0 = []
-28_0 = []
