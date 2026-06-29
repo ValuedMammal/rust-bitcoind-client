@@ -31,10 +31,10 @@ name = "client"
 
 [features]
 # Enable std library
-std = []
+std = ["corepc-types/std"]
 
 # Native HTTP client
-simple-http = ["std", "corepc-types/std", "jsonrpc/simple_http"]
+simple-http = ["std", "jsonrpc/simple_http"]
 
 # Bitcoin Core compatible versions
 default = ["30_0"]
