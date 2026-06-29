@@ -144,8 +144,11 @@ fn test_estimatesmartfee() -> anyhow::Result<()> {
 fn test_get_block_header() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
     let hash = mined_block_hash(&env)?;
-    let result = env.client.get_block_header_verbose(&hash);
-    assert!(result.is_ok(), "failed to call getblockheader: {result:?}");
+    let _header = env.client.get_block_header(&hash).expect("failed get_block_header");
+    let _get_block_header_verbose = env
+        .client
+        .get_block_header_verbose(&hash)
+        .expect("failed get_block_header_verbose");
     Ok(())
 }
 
