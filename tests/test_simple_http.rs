@@ -78,16 +78,26 @@ fn test_get_block() -> anyhow::Result<()> {
 #[test]
 fn test_get_raw_mempool() -> anyhow::Result<()> {
     let env = common::TestEnv::new()?;
-    let result = env.client.get_raw_mempool();
-    assert!(result.is_ok(), "failed to call getrawmempool: {result:?}");
-    Ok(())
-}
+    env.mine_blocks(101, None)?;
+    // Send tx to mempool
+    let address = env.node.client.new_address()?;
+    let txid = env
+        .client
+        .send_to_address(&address, Amount::from_sat(50_000))
+        .expect("failed to send_to_address");
 
-#[test]
-fn test_get_raw_mempool_verbose() -> anyhow::Result<()> {
-    let env = common::TestEnv::new()?;
-    let result = env.client.get_raw_mempool_verbose();
-    assert!(result.is_ok(), "failed to call getrawmempool verbose: {result:?}");
+    // Get raw mempool txids
+    let txids = env.client.get_raw_mempool().expect("failed get_raw_mempool");
+    assert!(txids.contains(&txid), "unexpected mempool txid");
+
+    // Get raw mempool (verbose)
+    let mempool_entries = env
+        .client
+        .get_raw_mempool_verbose()
+        .expect("failed get_raw_mempool_verbose");
+    assert!(!mempool_entries.is_empty(), "tx should appear in mempool");
+    let entry_txid = mempool_entries.keys().next().copied().unwrap();
+    assert_eq!(entry_txid, txid, "unexpected mempool entry txid");
     Ok(())
 }
 
