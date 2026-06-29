@@ -7,8 +7,7 @@ use std::path::PathBuf;
 use std::string::{String, ToString};
 use std::vec::Vec;
 
-use bitcoin::{Address, Amount, Block, BlockHash, FeeRate, Transaction, Txid};
-
+use bitcoin::{Address, Amount, Block, BlockHash, FeeRate, Transaction, Txid, block::Header};
 use corepc_types::bitcoin;
 use corepc_types::model::MempoolEntry;
 #[cfg(not(feature = "28_0"))]
@@ -126,6 +125,12 @@ impl Client {
     pub fn get_block_hash(&self, height: u32) -> Result<BlockHash, Error> {
         let res: String = self.call(GetBlockHash, &[json!(height)])?;
         Ok(res.parse()?)
+    }
+
+    /// `getblockheader`
+    pub fn get_block_header(&self, hash: &BlockHash) -> Result<Header, Error> {
+        let res: v29::GetBlockHeader = self.call(GetBlockHeader, &[json!(hash), json!(false)])?;
+        Ok(res.into_model().map_err(Error::model)?.0)
     }
 
     /// `getblockfilter`
