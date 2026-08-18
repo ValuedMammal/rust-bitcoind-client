@@ -6,6 +6,7 @@ use core::fmt::{self, Display};
 // See <https://bitcoincore.org/en/doc/> for details.
 /// RPCs
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum Rpc {
     /// `getbestblockhash`
     GetBestBlockHash,
