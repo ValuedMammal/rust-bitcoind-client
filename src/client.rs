@@ -129,6 +129,42 @@ impl Client {
         Ok(response.result()?)
     }
 
+    /// Execute a [`Batch`] of RPCs asynchronously
+    pub async fn batch_call_async<E>(
+        &self,
+        batch: &Batch,
+        send_fn: impl AsyncFn(Value) -> Result<Vec<Response>, E>,
+    ) -> Result<Vec<Response>, Error>
+    where
+        E: core::error::Error + Send + Sync + 'static,
+    {
+        // Create raw params
+        let raw_values: Vec<Option<Box<RawValue>>> = batch
+            .calls()
+            .map(|(_, params)| {
+                if params.is_empty() {
+                    Ok(None)
+                } else {
+                    serde_json::value::to_raw_value(params).map(Some)
+                }
+            })
+            .collect::<Result<_, _>>()?;
+
+        // Create requests
+        let requests: Vec<Request> = batch
+            .calls()
+            .zip(&raw_values)
+            .map(|((rpc, _), raw)| self.request(rpc.as_str(), raw.as_deref()))
+            .collect();
+
+        // Send batch
+        let value = serde_json::to_value(&requests)?;
+        let responses = send_fn(value).await.map_err(Error::transport)?;
+
+        // Reorder responses
+        reorder(&requests, responses)
+    }
+
     /// Forms the [`Request`] and increments the internal request id.
     fn request<'a>(&self, method: &'a str, params: Option<&'a RawValue>) -> Request<'a> {
         let id = self.id.fetch_add(1, Ordering::Relaxed);
