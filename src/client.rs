@@ -62,7 +62,7 @@ impl Client {
             return Err(Error::JsonRpc(jsonrpc::Error::VersionMismatch));
         }
         if response.id != request_id {
-            return Err(Error::IdMismatch);
+            return Err(Error::JsonRpc(jsonrpc::Error::NonceMismatch));
         }
         Ok(response.result()?)
     }
@@ -126,7 +126,7 @@ impl Client {
             return Err(Error::JsonRpc(jsonrpc::Error::VersionMismatch));
         }
         if response.id != request_id {
-            return Err(Error::IdMismatch);
+            return Err(Error::JsonRpc(jsonrpc::Error::NonceMismatch));
         }
         Ok(response.result()?)
     }

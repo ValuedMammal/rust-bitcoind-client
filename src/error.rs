@@ -10,8 +10,6 @@ pub enum Error {
     /// Bitcoin hex parsing error
     #[cfg(feature = "simple-http")]
     DecodeHex(corepc_types::bitcoin::hex::HexToArrayError),
-    /// mismatched IDs
-    IdMismatch,
     /// Invalid cookie file
     InvalidCookieFile,
     /// `std::io`
@@ -36,7 +34,6 @@ impl core::fmt::Display for Error {
         match self {
             #[cfg(feature = "simple-http")]
             Self::DecodeHex(e) => write!(f, "{e}"),
-            Self::IdMismatch => write!(f, "request id mismatch"),
             Self::InvalidCookieFile => write!(f, "invaild cookie file"),
             #[cfg(feature = "std")]
             Self::Io(e) => write!(f, "{e}"),
