@@ -36,9 +36,10 @@ pub enum Rpc {
     EstimateSmartFee,
 }
 
-impl Display for Rpc {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
+impl Rpc {
+    /// Returns the RPC method name string
+    pub const fn as_str(&self) -> &'static str {
+        match self {
             Self::GetBestBlockHash => "getbestblockhash",
             Self::GetBlockchainInfo => "getblockchaininfo",
             Self::GetBlockHash => "getblockhash",
@@ -52,8 +53,13 @@ impl Display for Rpc {
             Self::GetRawTransaction => "getrawtransaction",
             Self::ImportDescriptors => "importdescriptors",
             Self::EstimateSmartFee => "estimatesmartfee",
-        };
-        write!(f, "{s}")
+        }
+    }
+}
+
+impl Display for Rpc {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 
@@ -63,7 +69,7 @@ mod test {
     use alloc::string::ToString;
 
     #[test]
-    fn test_rpc_names() {
+    fn test_rpc_method_names() {
         for (rpc, name) in [
             (Rpc::GetBestBlockHash, "getbestblockhash"),
             (Rpc::GetBlockchainInfo, "getblockchaininfo"),
