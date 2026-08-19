@@ -20,7 +20,7 @@ use crate::Error;
 use crate::Rpc::{self, *};
 use crate::types::{GetBlockFilter, ImportDescriptorsRequest, ImportDescriptorsResponse};
 
-// RPC Client.
+/// RPC Client.
 #[derive(Debug)]
 pub struct Client {
     /// The inner JSON-RPC client.
