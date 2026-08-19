@@ -100,7 +100,7 @@ impl Client {
     where
         T: for<'de> Deserialize<'de>,
     {
-        self.inner.call(rpc, params, |request| self.tp.send_request(request))
+        self.inner.send(rpc, params, |request| self.tp.send_request(request))
     }
 }
 

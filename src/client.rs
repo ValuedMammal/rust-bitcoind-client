@@ -39,7 +39,7 @@ impl Client {
     }
 
     /// Execute the RPC.
-    pub fn call<T, E>(
+    pub fn send<T, E>(
         &self,
         rpc: Rpc,
         params: &[Value],
@@ -68,7 +68,7 @@ impl Client {
     }
 
     /// Execute a [`Batch`] of RPCs.
-    pub fn batch_call<E>(
+    pub fn send_batch<E>(
         &self,
         batch: &Batch,
         send_fn: impl Fn(&[Request]) -> Result<Vec<Response>, E>,
@@ -103,7 +103,7 @@ impl Client {
     }
 
     /// Execute the RPC asynchronously.
-    pub async fn call_async<T, E>(
+    pub async fn send_async<T, E>(
         &self,
         rpc: Rpc,
         params: &[Value],
@@ -132,7 +132,7 @@ impl Client {
     }
 
     /// Execute a [`Batch`] of RPCs asynchronously
-    pub async fn batch_call_async<E>(
+    pub async fn send_batch_async<E>(
         &self,
         batch: &Batch,
         send_fn: impl AsyncFn(&[Request]) -> Result<Vec<Response>, E>,
