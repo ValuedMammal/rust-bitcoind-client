@@ -2,7 +2,6 @@
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
-use core::future::Future;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 use jsonrpc::serde_json;
@@ -101,17 +100,15 @@ impl Client {
     }
 
     /// Execute the RPC asynchronously.
-    pub async fn call_async<T, E, F, Fut>(
+    pub async fn call_async<T, E>(
         &self,
         rpc: Rpc,
         params: &[Value],
-        send_fn: F,
+        send_fn: impl AsyncFn(&Request) -> Result<Response, E>,
     ) -> Result<T, Error>
     where
         T: for<'de> Deserialize<'de>,
         E: core::error::Error + Send + Sync + 'static,
-        F: Fn(Value) -> Fut,
-        Fut: Future<Output = Result<Response, E>>,
     {
         let method = rpc.as_str();
         let raw_value = if params.is_empty() {
@@ -121,8 +118,7 @@ impl Client {
         };
         let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
-        let value = serde_json::to_value(request)?;
-        let response = send_fn(value).await.map_err(Error::transport)?;
+        let response = send_fn(&request).await.map_err(Error::transport)?;
         if response.id != request_id {
             return Err(Error::IdMismatch);
         }
@@ -133,7 +129,7 @@ impl Client {
     pub async fn batch_call_async<E>(
         &self,
         batch: &Batch,
-        send_fn: impl AsyncFn(Value) -> Result<Vec<Response>, E>,
+        send_fn: impl AsyncFn(&[Request]) -> Result<Vec<Response>, E>,
     ) -> Result<Vec<Response>, Error>
     where
         E: core::error::Error + Send + Sync + 'static,
@@ -158,8 +154,7 @@ impl Client {
             .collect();
 
         // Send batch
-        let value = serde_json::to_value(&requests)?;
-        let responses = send_fn(value).await.map_err(Error::transport)?;
+        let responses = send_fn(&requests).await.map_err(Error::transport)?;
 
         // Reorder responses
         reorder(&requests, responses)
