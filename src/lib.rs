@@ -10,11 +10,13 @@ extern crate std;
 #[allow(unused_imports)]
 extern crate alloc;
 
+mod batch;
 mod client;
 mod error;
 mod rpc;
 #[cfg(feature = "simple-http")]
 pub mod simple_http;
+pub use batch::*;
 pub use client::*;
 pub use error::*;
 pub use rpc::*;

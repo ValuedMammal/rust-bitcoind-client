@@ -1,5 +1,7 @@
 //! [`Client`]
 
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 use core::future::Future;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -11,8 +13,7 @@ use serde_json::{
     value::{RawValue, Value},
 };
 
-use crate::Error;
-use crate::Rpc;
+use crate::{Batch, Error, Rpc};
 
 /// JSONRPC protocol version.
 const JSONRPC: &str = "2.0";
@@ -64,6 +65,41 @@ impl Client {
         Ok(response.result()?)
     }
 
+    /// Execute a [`Batch`] of RPCs.
+    pub fn batch_call<E>(
+        &self,
+        batch: &Batch,
+        send_fn: impl Fn(&[Request]) -> Result<Vec<Response>, E>,
+    ) -> Result<Vec<Response>, Error>
+    where
+        E: core::error::Error + Send + Sync + 'static,
+    {
+        // Create raw params
+        let raw_values: Vec<Option<Box<RawValue>>> = batch
+            .calls()
+            .map(|(_, params)| {
+                if params.is_empty() {
+                    Ok(None)
+                } else {
+                    serde_json::value::to_raw_value(params).map(Some)
+                }
+            })
+            .collect::<Result<_, _>>()?;
+
+        // Create requests
+        let requests: Vec<Request> = batch
+            .calls()
+            .zip(&raw_values)
+            .map(|((rpc, _), raw)| self.request(rpc.as_str(), raw.as_deref()))
+            .collect();
+
+        // Send batch
+        let responses = send_fn(&requests).map_err(Error::transport)?;
+
+        // Reorder responses
+        reorder(&requests, responses)
+    }
+
     /// Execute the RPC asynchronously.
     pub async fn call_async<T, E, F, Fut>(
         &self,
@@ -103,4 +139,48 @@ impl Client {
             jsonrpc: Some(JSONRPC),
         }
     }
+}
+
+/// Reorders the responses to match the order of the given requests
+///
+/// # Errors
+///
+/// - If requests and responses are of mismatched length
+/// - If a response returns an invalid, duplicate, or missing id
+fn reorder(requests: &[Request], responses: Vec<Response>) -> Result<Vec<Response>, Error> {
+    use alloc::collections::BTreeMap;
+
+    // Check for mismatched lengths
+    if responses.len() != requests.len() {
+        return Err(Error::JsonRpc(jsonrpc::Error::WrongBatchResponseSize));
+    }
+
+    // Responses are already in the correct order
+    if requests.iter().zip(&responses).all(|(req, resp)| req.id == resp.id) {
+        return Ok(responses);
+    }
+
+    let mut map = BTreeMap::new();
+
+    for response in responses {
+        let key = response.id.as_u64().ok_or_else(|| {
+            Error::JsonRpc(jsonrpc::Error::WrongBatchResponseId(response.id.clone()))
+        })?;
+        // Check for duplicate response ids
+        if let Some(dup) = map.insert(key, response) {
+            return Err(Error::JsonRpc(jsonrpc::Error::BatchDuplicateResponseId(dup.id)));
+        }
+    }
+
+    requests
+        .iter()
+        .map(|request| {
+            let key = request
+                .id
+                .as_u64()
+                .ok_or(Error::JsonRpc(jsonrpc::Error::NonceMismatch))?;
+            // Check for missing request id
+            map.remove(&key).ok_or(Error::JsonRpc(jsonrpc::Error::NonceMismatch))
+        })
+        .collect()
 }
