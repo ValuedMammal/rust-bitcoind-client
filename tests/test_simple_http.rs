@@ -3,7 +3,9 @@
 mod common;
 
 use bitcoin::{Amount, BlockHash, Txid};
+use bitcoind_client::jsonrpc::serde_json::json;
 use bitcoind_client::types::ImportDescriptorsRequest;
+use bitcoind_client::{Batch, Rpc};
 use common::TestEnv;
 use corepc_types::bitcoin;
 
@@ -175,5 +177,30 @@ fn test_get_descriptor_info() -> anyhow::Result<()> {
     let descriptor = format!("addr({address})");
     let result = env.client.get_descriptor_info(&descriptor);
     assert!(result.is_ok(), "failed to call getdescriptorinfo: {result:?}");
+    Ok(())
+}
+
+#[test]
+fn test_batch_call() -> anyhow::Result<()> {
+    let env = TestEnv::new()?;
+    let best_hash = mined_block_hash(&env)?;
+    let genesis_hash = env.client.get_block_hash(0)?;
+
+    let mut batch = Batch::new(Rpc::GetBlockCount, vec![]);
+    batch.push(Rpc::GetBestBlockHash, vec![]);
+    batch.push(Rpc::GetBlockHash, vec![json!(0)]);
+
+    let responses = env.client.batch_call(&batch)?;
+    assert_eq!(responses.len(), 3, "expected 3 responses");
+
+    let block_count: u32 = responses[0].result()?;
+    assert_eq!(block_count, 1, "unexpected block count");
+
+    let best_hash_res: BlockHash = responses[1].result::<String>()?.parse()?;
+    assert_eq!(best_hash_res, best_hash, "unexpected best block hash");
+
+    let genesis_hash_res: BlockHash = responses[2].result::<String>()?.parse()?;
+    assert_eq!(genesis_hash_res, genesis_hash, "unexpected genesis block hash");
+
     Ok(())
 }

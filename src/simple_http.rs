@@ -11,14 +11,14 @@ use bitcoin::{Address, Amount, Block, BlockHash, FeeRate, Transaction, Txid, blo
 use corepc_types::bitcoin;
 use corepc_types::model::{self, GetBlockHeaderVerbose, GetBlockVerboseOne, MempoolEntry};
 use corepc_types::v31;
-use jsonrpc::Transport;
+use jsonrpc::{Response, Transport};
 use jsonrpc::{serde, serde_json};
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::Error;
 use crate::Rpc::{self, *};
 use crate::types::{GetBlockFilter, ImportDescriptorsRequest, ImportDescriptorsResponse};
+use crate::{Batch, Error};
 
 /// RPC Client.
 #[derive(Debug)]
@@ -101,6 +101,11 @@ impl Client {
         T: for<'de> Deserialize<'de>,
     {
         self.inner.send(rpc, params, |request| self.tp.send_request(request))
+    }
+
+    /// Execute a batch of RPCs
+    pub fn batch_call(&self, batch: &Batch) -> Result<Vec<Response>, Error> {
+        self.inner.send_batch(batch, |request| self.tp.send_batch(request))
     }
 }
 
