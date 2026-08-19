@@ -1,6 +1,5 @@
 //! [`Client`]
 
-use alloc::string::ToString;
 use core::future::Future;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -50,13 +49,13 @@ impl Client {
         T: for<'de> Deserialize<'de>,
         E: core::error::Error + Send + Sync + 'static,
     {
-        let method = rpc.to_string();
+        let method = rpc.as_str();
         let raw_value = if params.is_empty() {
             None
         } else {
             Some(serde_json::value::to_raw_value(params)?)
         };
-        let request = self.request(&method, raw_value.as_deref());
+        let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
         let response = send_fn(request).map_err(Error::transport)?;
         if response.id != request_id {
@@ -78,13 +77,13 @@ impl Client {
         F: Fn(Value) -> Fut,
         Fut: Future<Output = Result<Response, E>>,
     {
-        let method = rpc.to_string();
+        let method = rpc.as_str();
         let raw_value = if params.is_empty() {
             None
         } else {
             Some(serde_json::value::to_raw_value(params)?)
         };
-        let request = self.request(&method, raw_value.as_deref());
+        let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
         let value = serde_json::to_value(request)?;
         let response = send_fn(value).await.map_err(Error::transport)?;
