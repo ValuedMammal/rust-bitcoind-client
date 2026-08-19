@@ -58,6 +58,9 @@ impl Client {
         let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
         let response = send_fn(request).map_err(Error::transport)?;
+        if response.jsonrpc != Some(JSONRPC.into()) {
+            return Err(Error::JsonRpc(jsonrpc::Error::VersionMismatch));
+        }
         if response.id != request_id {
             return Err(Error::IdMismatch);
         }
@@ -119,6 +122,9 @@ impl Client {
         let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
         let response = send_fn(&request).await.map_err(Error::transport)?;
+        if response.jsonrpc != Some(JSONRPC.into()) {
+            return Err(Error::JsonRpc(jsonrpc::Error::VersionMismatch));
+        }
         if response.id != request_id {
             return Err(Error::IdMismatch);
         }
@@ -194,6 +200,9 @@ fn reorder(requests: &[Request], responses: Vec<Response>) -> Result<Vec<Respons
     let mut map = BTreeMap::new();
 
     for response in responses {
+        if response.jsonrpc != Some(JSONRPC.into()) {
+            return Err(Error::JsonRpc(jsonrpc::Error::VersionMismatch));
+        }
         let key = response.id.as_u64().ok_or_else(|| {
             Error::JsonRpc(jsonrpc::Error::WrongBatchResponseId(response.id.clone()))
         })?;
