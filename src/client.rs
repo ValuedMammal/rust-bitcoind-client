@@ -9,7 +9,7 @@ use jsonrpc::{Request, Response};
 use serde::Deserialize;
 use serde_json::{
     json,
-    value::{RawValue, Value},
+    value::{RawValue, Value, to_raw_value},
 };
 
 use crate::{Batch, Error, Rpc};
@@ -53,7 +53,7 @@ impl Client {
         let raw_value = if params.is_empty() {
             None
         } else {
-            Some(serde_json::value::to_raw_value(params)?)
+            Some(to_raw_value(params)?)
         };
         let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
@@ -83,7 +83,7 @@ impl Client {
                 if params.is_empty() {
                     Ok(None)
                 } else {
-                    serde_json::value::to_raw_value(params).map(Some)
+                    to_raw_value(params).map(Some)
                 }
             })
             .collect::<Result<_, _>>()?;
@@ -117,7 +117,7 @@ impl Client {
         let raw_value = if params.is_empty() {
             None
         } else {
-            Some(serde_json::value::to_raw_value(params)?)
+            Some(to_raw_value(params)?)
         };
         let request = self.request(method, raw_value.as_deref());
         let request_id = request.id.clone();
@@ -147,7 +147,7 @@ impl Client {
                 if params.is_empty() {
                     Ok(None)
                 } else {
-                    serde_json::value::to_raw_value(params).map(Some)
+                    to_raw_value(params).map(Some)
                 }
             })
             .collect::<Result<_, _>>()?;
