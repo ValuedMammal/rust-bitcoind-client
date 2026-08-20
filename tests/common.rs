@@ -44,7 +44,7 @@ impl TestEnv {
     }
 
     /// Mines `nblocks` blocks to the given `address`, or an address controlled
-    /// by the [`Node`] if not provided.
+    /// by the [`BitcoinD`] node if not provided.
     pub fn mine_blocks(
         &self,
         nblocks: usize,
