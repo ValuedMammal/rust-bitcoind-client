@@ -107,6 +107,47 @@ impl Client {
     pub fn send_batch(&self, batch: &Batch) -> Result<Vec<Response>, Error> {
         self.inner.send_batch(batch, |request| self.tp.send_batch(request))
     }
+
+    /// Sends multiple requests of varying parameters to the given [`Rpc`] method.
+    ///
+    /// For each request returns the result of deserializing into the specified type `T`.
+    /// To send a heterogeneous batch of RPCs, see [`send_batch`](Client::send_batch).
+    ///
+    /// This is typically used with RPCs that require parameters, for example requesting
+    /// block hashes over an array of heights.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use jsonrpc::serde_json::json;
+    /// # use bitcoind_client::Rpc;
+    /// # use bitcoind_client::simple_http::Client;
+    /// use corepc_types::v31::GetBlockHash;
+    /// # let client = Client::new_user_pass("", String::new(), None);
+    ///
+    /// let heights = [1u32, 2, 3];
+    /// let params = heights.iter().map(|h| vec![json!(h)]);
+    /// for result in client.send_many::<GetBlockHash>(Rpc::GetBlockHash, params)? {
+    ///     assert!(matches!(result, Ok(GetBlockHash(..))));
+    /// }
+    /// # <Result<_, bitcoind_client::Error>>::Ok(())
+    /// ```
+    pub fn send_many<T>(
+        &self,
+        rpc: Rpc,
+        params: impl IntoIterator<Item = Vec<serde_json::Value>>,
+    ) -> Result<Vec<Result<T, Error>>, Error>
+    where
+        T: for<'de> Deserialize<'de>,
+    {
+        let batch = Batch::from_calls(core::iter::repeat(rpc).zip(params))
+            .ok_or(Error::JsonRpc(jsonrpc::Error::EmptyBatch))?;
+        Ok(self
+            .send_batch(&batch)?
+            .iter()
+            .map(|resp| resp.result::<T>().map_err(Error::JsonRpc))
+            .collect())
+    }
 }
 
 // `bitcoind` RPC methods

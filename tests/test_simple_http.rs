@@ -204,3 +204,46 @@ fn test_send_batch() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_send_many_success() -> anyhow::Result<()> {
+    let env = TestEnv::new()?;
+    let _ = env.mine_blocks(10, None)?;
+
+    let heights = [1u32, 2, 3];
+    let params = heights.iter().map(|h| vec![json!(h)]);
+
+    use corepc_types::v31::GetBlockHash;
+    let rpc = Rpc::GetBlockHash;
+    let results = env.client.send_many::<GetBlockHash>(rpc, params)?;
+
+    for (height, result) in heights.into_iter().zip(results) {
+        let get_block_hash = env.bitcoind.client.get_block_hash(height as u64)?;
+        assert_eq!(result.unwrap(), get_block_hash);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_send_many_result_error() -> anyhow::Result<()> {
+    let env = TestEnv::new()?;
+    let _ = env.mine_blocks(10, None)?;
+
+    let heights = [1u32, 2, 999]; // height 999 doesn't exist yet
+    let params = heights.iter().map(|h| vec![json!(h)]);
+
+    use corepc_types::v31::GetBlockHash;
+    let rpc = Rpc::GetBlockHash;
+    let results = env.client.send_many::<GetBlockHash>(rpc, params)?;
+
+    for (height, result) in heights.into_iter().zip(results) {
+        if height < 10 {
+            result.expect("getblockhash should succeed");
+        } else {
+            result.expect_err("getblockhash should error for non-existing height");
+        }
+    }
+
+    Ok(())
+}
