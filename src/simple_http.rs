@@ -103,8 +103,8 @@ impl Client {
         self.inner.send(rpc, params, |request| self.tp.send_request(request))
     }
 
-    /// Execute a batch of RPCs
-    pub fn batch_call(&self, batch: &Batch) -> Result<Vec<Response>, Error> {
+    /// Sends a heterogeneous batch of RPCs
+    pub fn send_batch(&self, batch: &Batch) -> Result<Vec<Response>, Error> {
         self.inner.send_batch(batch, |request| self.tp.send_batch(request))
     }
 }

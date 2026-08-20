@@ -181,7 +181,7 @@ fn test_get_descriptor_info() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_batch_call() -> anyhow::Result<()> {
+fn test_send_batch() -> anyhow::Result<()> {
     let env = TestEnv::new()?;
     let best_hash = mined_block_hash(&env)?;
     let genesis_hash = env.client.get_block_hash(0)?;
@@ -190,7 +190,7 @@ fn test_batch_call() -> anyhow::Result<()> {
     batch.push(Rpc::GetBestBlockHash, vec![]);
     batch.push(Rpc::GetBlockHash, vec![json!(0)]);
 
-    let responses = env.client.batch_call(&batch)?;
+    let responses = env.client.send_batch(&batch)?;
     assert_eq!(responses.len(), 3, "expected 3 responses");
 
     let block_count: u32 = responses[0].result()?;
