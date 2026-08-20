@@ -224,3 +224,100 @@ fn reorder(requests: &[Request], responses: Vec<Response>) -> Result<Vec<Respons
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use super::*;
+
+    fn req(id: u64) -> Request<'static> {
+        Request {
+            method: "test",
+            params: None,
+            id: json!(id),
+            jsonrpc: Some(JSONRPC),
+        }
+    }
+
+    fn resp(id: Value) -> Response {
+        Response {
+            result: Some(to_raw_value(&true).unwrap()),
+            error: None,
+            id,
+            jsonrpc: Some(JSONRPC.to_string()),
+        }
+    }
+
+    #[test]
+    fn in_order_responses_return_unchanged() {
+        let requests = vec![req(0), req(1), req(2)];
+        // Ids already line up positionally, so they should be returned unchanged.
+        let responses = vec![resp(json!(0)), resp(json!(1)), resp(json!(2))];
+        let result = reorder(&requests, responses).unwrap();
+        let ids: Vec<_> = result.iter().map(|r| r.id.as_u64().unwrap()).collect();
+        assert_eq!(ids, [0, 1, 2]);
+    }
+
+    #[test]
+    fn responses_are_reordered() {
+        let requests = vec![req(0), req(1), req(2)];
+        let responses = vec![resp(json!(2)), resp(json!(0)), resp(json!(1))];
+        let result = reorder(&requests, responses).unwrap();
+        let ids: Vec<_> = result.iter().map(|r| r.id.as_u64().unwrap()).collect();
+        assert_eq!(ids, [0, 1, 2]);
+    }
+
+    #[test]
+    fn null_response_id_errors() {
+        let requests = vec![req(0), req(1)];
+        let responses = vec![resp(json!(1)), resp(Value::Null)];
+        let err = reorder(&requests, responses).unwrap_err();
+        assert!(matches!(
+            err,
+            Error::JsonRpc(jsonrpc::Error::WrongBatchResponseId(id))
+            if id == Value::Null
+        ));
+    }
+
+    #[test]
+    fn string_response_id_errors() {
+        let requests = vec![req(0), req(1)];
+        let responses = vec![resp(json!(1)), resp(json!("0"))];
+        let err = reorder(&requests, responses).unwrap_err();
+        assert!(matches!(
+            err,
+            Error::JsonRpc(jsonrpc::Error::WrongBatchResponseId(id))
+            if id == json!("0")
+        ));
+    }
+
+    #[test]
+    fn duplicate_response_ids_error() {
+        let requests = vec![req(0), req(1)];
+        let responses = vec![resp(json!(0)), resp(json!(0))];
+        let err = reorder(&requests, responses).unwrap_err();
+        assert!(matches!(
+            err,
+            Error::JsonRpc(jsonrpc::Error::BatchDuplicateResponseId(dup_id))
+            if dup_id == json!(0)
+        ));
+    }
+
+    #[test]
+    fn unrequested_response_ids_error() {
+        let requests = vec![req(0), req(1)];
+        // Correct length and no duplicates, but neither id was ever requested.
+        let responses = vec![resp(json!(7)), resp(json!(8))];
+        let err = reorder(&requests, responses).unwrap_err();
+        assert!(matches!(err, Error::JsonRpc(jsonrpc::Error::NonceMismatch)));
+    }
+
+    #[test]
+    fn mismatched_response_count_errors() {
+        let requests = vec![req(0), req(1)];
+        let responses = vec![resp(json!(0))];
+        let err = reorder(&requests, responses).unwrap_err();
+        assert!(matches!(err, Error::JsonRpc(jsonrpc::Error::WrongBatchResponseSize)));
+    }
+}
