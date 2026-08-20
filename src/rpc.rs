@@ -1,5 +1,6 @@
 //! [`Rpc`] methods
 
+use alloc::borrow::Cow;
 use core::fmt::{self, Display};
 
 // RPC methods go here. These names MUST match the name of the RPC method (when converted to lowercase).
@@ -60,6 +61,19 @@ impl Rpc {
 impl Display for Rpc {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
+    }
+}
+
+impl AsRef<str> for Rpc {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl From<Rpc> for Cow<'static, str> {
+    // Borrowed, so converting a known `Rpc` variant never allocates.
+    fn from(rpc: Rpc) -> Self {
+        Cow::Borrowed(rpc.as_str())
     }
 }
 

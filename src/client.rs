@@ -12,7 +12,7 @@ use serde_json::{
     value::{RawValue, Value, to_raw_value},
 };
 
-use crate::{Batch, Error, Rpc};
+use crate::{Batch, Error};
 
 /// JSONRPC protocol version.
 const JSONRPC: &str = "2.0";
@@ -41,7 +41,7 @@ impl Client {
     /// Execute the RPC.
     pub fn send<T, E>(
         &self,
-        rpc: Rpc,
+        method: impl AsRef<str>,
         params: &[Value],
         send_fn: impl Fn(Request) -> Result<Response, E>,
     ) -> Result<T, Error>
@@ -49,7 +49,7 @@ impl Client {
         T: for<'de> Deserialize<'de>,
         E: core::error::Error + Send + Sync + 'static,
     {
-        let method = rpc.as_str();
+        let method = method.as_ref();
         let raw_value = if params.is_empty() {
             None
         } else {
@@ -92,7 +92,7 @@ impl Client {
         let requests: Vec<Request> = batch
             .calls()
             .zip(&raw_values)
-            .map(|((rpc, _), raw)| self.request(rpc.as_str(), raw.as_deref()))
+            .map(|((method, _), raw)| self.request(method, raw.as_deref()))
             .collect();
 
         // Send batch
@@ -105,7 +105,7 @@ impl Client {
     /// Execute the RPC asynchronously.
     pub async fn send_async<T, E>(
         &self,
-        rpc: Rpc,
+        method: impl AsRef<str>,
         params: &[Value],
         send_fn: impl AsyncFn(&Request) -> Result<Response, E>,
     ) -> Result<T, Error>
@@ -113,7 +113,7 @@ impl Client {
         T: for<'de> Deserialize<'de>,
         E: core::error::Error + Send + Sync + 'static,
     {
-        let method = rpc.as_str();
+        let method = method.as_ref();
         let raw_value = if params.is_empty() {
             None
         } else {
@@ -156,7 +156,7 @@ impl Client {
         let requests: Vec<Request> = batch
             .calls()
             .zip(&raw_values)
-            .map(|((rpc, _), raw)| self.request(rpc.as_str(), raw.as_deref()))
+            .map(|((method, _), raw)| self.request(method, raw.as_deref()))
             .collect();
 
         // Send batch

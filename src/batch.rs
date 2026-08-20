@@ -1,39 +1,44 @@
 //! [`Batch`]
 
+use alloc::borrow::Cow;
 use alloc::vec::Vec;
 use jsonrpc::serde_json::Value;
 
-use crate::Rpc;
-
-/// A group of RPC calls to be sent as a single batch
+/// A group of one or more RPC calls to be sent as a single batch.
 #[derive(Debug, Clone)]
 pub struct Batch {
-    /// List of RPCs and associated params
-    pub(crate) calls: Vec<(Rpc, Vec<Value>)>,
+    /// List of method names and associated params
+    pub(crate) calls: Vec<(Cow<'static, str>, Vec<Value>)>,
 }
 
 impl Batch {
-    /// Create a new [`Batch`] containing the first call
-    pub fn new(rpc: Rpc, params: Vec<Value>) -> Self {
+    /// Create a new [`Batch`] containing the first call.
+    ///
+    /// `method` accepts a variant of [`Rpc`](crate::Rpc) or a `'static str`. To use a
+    /// non-`'static` `&str`, convert it to an owned `String` first.
+    pub fn new(method: impl Into<Cow<'static, str>>, params: Vec<Value>) -> Self {
         Self {
-            calls: vec![(rpc, params)],
+            calls: vec![(method.into(), params)],
         }
     }
 
-    /// Create a new [`Batch`] from an iterator of `(Rpc, params)`
-    pub fn from_calls(calls: impl IntoIterator<Item = (Rpc, Vec<Value>)>) -> Option<Self> {
+    /// Create a new [`Batch`] from an iterator of `(method, params)`
+    pub fn from_calls<M>(calls: impl IntoIterator<Item = (M, Vec<Value>)>) -> Option<Self>
+    where
+        M: Into<Cow<'static, str>>,
+    {
         let mut iter = calls.into_iter();
-        let (rpc, params) = iter.next()?;
-        let mut batch = Self::new(rpc, params);
-        for (rpc, params) in iter {
-            batch.push(rpc, params);
+        let (method, params) = iter.next()?;
+        let mut batch = Self::new(method, params);
+        for (method, params) in iter {
+            batch.push(method, params);
         }
         Some(batch)
     }
 
     /// Add a call to this batch
-    pub fn push(&mut self, rpc: Rpc, params: Vec<Value>) {
-        self.calls.push((rpc, params));
+    pub fn push(&mut self, method: impl Into<Cow<'static, str>>, params: Vec<Value>) {
+        self.calls.push((method.into(), params));
     }
 
     /// Returns the count of calls in this batch
@@ -43,7 +48,9 @@ impl Batch {
     }
 
     /// Iterate over calls in this batch
-    pub fn calls(&self) -> impl Iterator<Item = &(Rpc, Vec<Value>)> {
-        self.calls.iter()
+    pub fn calls(&self) -> impl Iterator<Item = (&str, &[Value])> {
+        self.calls
+            .iter()
+            .map(|(method, params)| (method.as_ref(), params.as_slice()))
     }
 }

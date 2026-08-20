@@ -247,3 +247,15 @@ fn test_send_many_result_error() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_send_accepts_method_name_string() -> anyhow::Result<()> {
+    let env = TestEnv::new()?;
+    let address = env.bitcoind.client.new_address()?;
+
+    let hashes: Vec<String> = env.client.send("generatetoaddress", &[json!(1), json!(address)])?;
+    let hash: BlockHash = hashes[0].parse()?;
+
+    assert_eq!(hash, env.client.get_best_block_hash()?, "unexpected mined block hash");
+    Ok(())
+}
