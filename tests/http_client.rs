@@ -1,4 +1,4 @@
-//! Tests the RPC methods of the `simple_http::Client`.
+//! Tests the RPC methods of the `http::Client`.
 
 mod common;
 

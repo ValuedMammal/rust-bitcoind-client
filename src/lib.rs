@@ -13,9 +13,9 @@ extern crate alloc;
 mod batch;
 mod client;
 mod error;
-mod rpc;
 #[cfg(feature = "simple-http")]
-pub mod simple_http;
+pub mod http;
+mod rpc;
 pub use batch::*;
 pub use client::*;
 pub use error::*;

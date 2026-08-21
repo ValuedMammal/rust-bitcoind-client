@@ -1,4 +1,6 @@
-//! `simple_http` [`Client`].
+//! [`Client`] is a simple HTTP client backed by a [`SimpleHttpTransport`][0].
+//!
+//! [0]: jsonrpc::simple_http::SimpleHttpTransport
 
 use std::borrow::Cow;
 use std::collections::BTreeMap;
@@ -133,7 +135,7 @@ impl Client {
     /// ```rust,no_run
     /// # use jsonrpc::serde_json::json;
     /// # use bitcoind_client::Rpc;
-    /// # use bitcoind_client::simple_http::Client;
+    /// # use bitcoind_client::http::Client;
     /// use corepc_types::v31::GetBlockHash;
     /// # let client = Client::new_user_pass("", String::new(), None);
     ///

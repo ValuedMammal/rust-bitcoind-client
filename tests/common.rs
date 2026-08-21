@@ -2,7 +2,7 @@
 
 use bitcoin::{Address, BlockHash};
 use bitcoind::{BitcoinD, Conf, exe_path};
-use bitcoind_client::simple_http::{Auth, Client};
+use bitcoind_client::http::{Auth, Client};
 use corepc_types::bitcoin;
 
 /// Test environment for running integration tests.
