@@ -1,4 +1,4 @@
-name: CI
+name: Rust
 
 on:
   push:
@@ -8,13 +8,56 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  build-msrv:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v6
-    - name: Build
-      run: cargo build
-    - name: Run tests
+    - name: Install rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: 1.85.0 # MSRV
+    - name: Build (no std)
+      run: cargo build --lib --no-default-features
+    - name: Build (std + http)
+      run: cargo build --lib --features "std,simple-http"
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: 1.98.0
+    - name: Build (default)
+      run: cargo build --all-targets
+    - name: Build (std + http)
+      run: cargo build --all-targets --features "std,simple-http"
+    - name: Test
       run: cargo test
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: nightly-2026-08-01
+        components: rustfmt
+    - name: Rustfmt
+      run: cargo +nightly fmt --all --check
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install rust toolchain
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: 1.98.0
+        components: clippy
+    - name: Clippy
+      env:
+        RUSTFLAGS: "-Dwarnings"
+      run: cargo clippy --all-targets --all-features
