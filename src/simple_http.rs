@@ -67,6 +67,10 @@ impl Client {
     }
 
     /// Creates a `simple_http` client with `user` and `pass`.
+    ///
+    /// # Panics
+    ///
+    /// - If `url` can't be parsed into a valid URL
     pub fn new_user_pass(url: &str, user: String, pass: Option<String>) -> Self {
         let tp = jsonrpc::simple_http::Builder::new()
             .url(url)
@@ -82,6 +86,10 @@ impl Client {
     }
 
     /// Creates a `simple_http` client with `cookie` authentication.
+    ///
+    /// # Panics
+    ///
+    /// - If `url` can't be parsed into a valid URL
     pub fn new_cookie_auth(url: &str, cookie: String) -> Self {
         let tp = jsonrpc::simple_http::Builder::new()
             .url(url)
