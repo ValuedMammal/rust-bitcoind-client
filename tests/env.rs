@@ -1,4 +1,4 @@
-#![allow(unused)]
+//! [`TestEnv`] is a testing environment
 
 use bitcoin::{Address, BlockHash};
 use bitcoind::{BitcoinD, Conf, exe_path};

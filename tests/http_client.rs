@@ -1,13 +1,13 @@
 //! Tests the RPC methods of the `http::Client`.
 
-mod common;
-
 use bitcoin::{Amount, BlockHash, Txid};
 use bitcoind_client::jsonrpc::serde_json::json;
 use bitcoind_client::types::ImportDescriptorsRequest;
 use bitcoind_client::{Batch, Rpc};
-use common::TestEnv;
 use corepc_types::bitcoin;
+use env::TestEnv;
+
+mod env;
 
 fn mined_block_hash(env: &TestEnv) -> anyhow::Result<BlockHash> {
     Ok(env.mine_blocks(1, None)?[0])
