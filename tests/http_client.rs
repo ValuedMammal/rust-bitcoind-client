@@ -171,6 +171,15 @@ fn test_get_block_verbose() -> anyhow::Result<()> {
 }
 
 #[test]
+fn test_get_block_verbose_two() -> anyhow::Result<()> {
+    let env = TestEnv::new()?;
+    let hash = mined_block_hash(&env)?;
+    let result = env.client.get_block_verbose_two(&hash);
+    assert!(result.is_ok(), "failed to call getblock verbosity=2: {result:?}");
+    Ok(())
+}
+
+#[test]
 fn test_get_descriptor_info() -> anyhow::Result<()> {
     let env = TestEnv::new()?;
     let address = env.bitcoind.client.new_address()?;

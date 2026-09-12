@@ -12,7 +12,9 @@ use std::vec::Vec;
 
 use bitcoin::{Address, Amount, Block, BlockHash, FeeRate, Transaction, Txid, block::Header};
 use corepc_types::bitcoin;
-use corepc_types::model::{self, GetBlockHeaderVerbose, GetBlockVerboseOne, MempoolEntry};
+use corepc_types::model::{
+    self, GetBlockHeaderVerbose, GetBlockVerboseOne, GetBlockVerboseTwo, MempoolEntry,
+};
 use corepc_types::v31;
 use jsonrpc::{Response, Transport};
 use jsonrpc::{serde, serde_json};
@@ -282,9 +284,15 @@ impl Client {
 
 #[cfg(feature = "31_0")]
 impl Client {
-    /// `getblock` (verbose = 1)
+    /// `getblock` (verbosity = 1)
     pub fn get_block_verbose(&self, hash: &BlockHash) -> Result<GetBlockVerboseOne, Error> {
         let res: v31::GetBlockVerboseOne = self.send(GetBlock, &[json!(hash), json!(1)])?;
+        res.into_model().map_err(Error::model)
+    }
+
+    /// `getblock` (verbosity = 2)
+    pub fn get_block_verbose_two(&self, hash: &BlockHash) -> Result<GetBlockVerboseTwo, Error> {
+        let res: v31::GetBlockVerboseTwo = self.send(GetBlock, &[json!(hash), json!(2)])?;
         res.into_model().map_err(Error::model)
     }
 
@@ -302,9 +310,15 @@ use corepc_types::v30;
 
 #[cfg(not(feature = "31_0"))]
 impl Client {
-    /// `getblock` (verbose = 1)
+    /// `getblock` (verbosity = 1)
     pub fn get_block_verbose(&self, hash: &BlockHash) -> Result<GetBlockVerboseOne, Error> {
         let res: v30::GetBlockVerboseOne = self.send(GetBlock, &[json!(hash), json!(1)])?;
+        res.into_model().map_err(Error::model)
+    }
+
+    /// `getblock` (verbosity = 2)
+    pub fn get_block_verbose_two(&self, hash: &BlockHash) -> Result<GetBlockVerboseTwo, Error> {
+        let res: v30::GetBlockVerboseTwo = self.send(GetBlock, &[json!(hash), json!(2)])?;
         res.into_model().map_err(Error::model)
     }
 
